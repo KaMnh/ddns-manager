@@ -3,6 +3,7 @@ import type { ProviderField, ProviderSchema, ProvidersResponse, RecordRow, Valid
 import type { MutationResult } from '../lib/api'
 import { Button } from './ui'
 import { IconEye, IconEyeOff, IconExternal, IconX } from './icons'
+import { splitDomains } from '../lib/group'
 
 const SECRET_MASK = '••••••••'
 const INPUT =
@@ -45,6 +46,7 @@ export function RecordForm({
   const [revealed, setRevealed] = useState<Set<string>>(new Set())
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [domainDraft, setDomainDraft] = useState('')
 
   const editing = initial !== null
   const commonNames = useMemo(() => new Set(providers.common.map((f) => f.name)), [providers])
@@ -196,6 +198,80 @@ export function RecordForm({
     )
   }
 
+  // The `domain` field can hold several comma-separated domains (one ddns-updater
+  // record). Render it as an add/remove chip editor that serializes back to the
+  // comma string, so a multi-domain entry can be edited domain-by-domain.
+  function renderDomainsField() {
+    const domains = splitDomains(String(values.domain ?? ''))
+    const commit = (list: string[]) =>
+      set('domain', [...new Set(list.map((d) => d.trim()).filter(Boolean))].join(','))
+    const addFromDraft = (raw: string) => {
+      const parts = raw.split(',').map((s) => s.trim()).filter(Boolean)
+      if (parts.length) commit([...domains, ...parts])
+      setDomainDraft('')
+    }
+    const err = errorFor('domain')
+    return (
+      <div key="domain" className="space-y-1.5">
+        <label
+          htmlFor="f-domain"
+          className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-fg-dim"
+        >
+          Domain{domains.length > 1 ? ` · ${domains.length}` : ''} <span className="text-accent">*</span>
+        </label>
+        <div
+          className={`${INPUT} flex cursor-text flex-wrap items-center gap-1.5 focus-within:border-accent/60`}
+          onClick={() => document.getElementById('f-domain')?.focus()}
+        >
+          {domains.map((d) => (
+            <span
+              key={d}
+              className="inline-flex items-center gap-1 rounded-md border border-line-bright bg-ink-950 px-1.5 py-0.5 font-mono text-xs text-fg"
+            >
+              {d}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  commit(domains.filter((x) => x !== d))
+                }}
+                className="text-fg-faint hover:text-down"
+                aria-label={`Remove ${d}`}
+              >
+                <IconX width={12} height={12} />
+              </button>
+            </span>
+          ))}
+          <input
+            id="f-domain"
+            className="min-w-[8rem] flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg-faint"
+            placeholder={domains.length ? 'Add another…' : 'home.example.com'}
+            value={domainDraft}
+            autoComplete="off"
+            onChange={(e) =>
+              e.target.value.includes(',') ? addFromDraft(e.target.value) : setDomainDraft(e.target.value)
+            }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                addFromDraft(domainDraft)
+              } else if (e.key === 'Backspace' && domainDraft === '' && domains.length) {
+                const last = domains[domains.length - 1]
+                if (last) commit(domains.filter((x) => x !== last))
+              }
+            }}
+            onBlur={() => addFromDraft(domainDraft)}
+          />
+        </div>
+        <p className="text-xs text-fg-faint">
+          Press Enter or comma to add. Several domains are saved as one ddns-updater record
+          (comma-separated), sharing the credentials below.
+        </p>
+        {err && <p className="text-xs text-down">{err}</p>}
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
       <div
@@ -255,8 +331,8 @@ export function RecordForm({
             {errorFor('provider') && <p className="text-xs text-down">{errorFor('provider')}</p>}
           </div>
 
-          {/* common fields */}
-          {providers.common.map(renderField)}
+          {/* common fields (domain rendered as a multi-domain chip editor) */}
+          {providers.common.map((f) => (f.name === 'domain' ? renderDomainsField() : renderField(f)))}
 
           {/* provider-specific */}
           {plainFields.length > 0 && (
