@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { readFile } from 'node:fs/promises'
 import type { ConfigStore } from '../lib/configStore.js'
 import { parseUpdates, mergeStatus } from '../lib/updatesReader.js'
+import { rootDomain } from '../lib/domain.js'
 
 export interface StatusOptions {
   store: ConfigStore
@@ -22,7 +23,9 @@ const statusRoutes: FastifyPluginAsync<StatusOptions> = async (app, opts) => {
       }
     }
 
-    return { records: mergeStatus(cfg.settings, updates) }
+    return {
+      records: mergeStatus(cfg.settings, updates).map((s) => ({ ...s, rootDomain: rootDomain(s.domain) })),
+    }
   })
 }
 

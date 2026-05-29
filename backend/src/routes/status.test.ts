@@ -51,6 +51,7 @@ describe('GET /api/status', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.records[0]).toMatchObject({ provider: 'cloudflare', currentIp: '9.9.9.9', hasData: true })
+    expect(body.records[0].rootDomain).toBe('example.com')
     expect(body.records[1]).toMatchObject({ provider: 'duckdns', hasData: false })
   })
 

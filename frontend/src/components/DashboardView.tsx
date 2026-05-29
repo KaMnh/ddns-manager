@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import type { StatusRow } from '../lib/types'
 import { relativeTime, fullTime } from '../lib/format'
+import { groupByRoot } from '../lib/group'
 import { Button, ProviderBadge, StatusDot, Spinner } from './ui'
 import { IconPlus, IconCopy, IconCheck } from './icons'
 
@@ -68,6 +69,8 @@ export function DashboardView({
     )
   }
 
+  const groups = groupByRoot(rows)
+
   return (
     <div className="overflow-hidden rounded-2xl border border-line bg-surface/60">
       <table className="w-full border-collapse text-left">
@@ -81,33 +84,51 @@ export function DashboardView({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, i) => {
-            const online = row.hasData
+          {groups.map((group) => {
+            const online = group.items.filter((r) => r.hasData).length
             return (
-              <tr
-                key={`${row.domain}-${row.index}`}
-                className="border-b border-line/60 opacity-0 transition-colors last:border-0 hover:bg-surface-2/60"
-                style={{ animation: 'rise 0.4s ease-out forwards', animationDelay: `${i * 45}ms` }}
-              >
-                <td className="px-5 py-4">
-                  <span className="inline-flex items-center gap-2.5">
-                    <StatusDot kind={online ? 'online' : 'pending'} pulse={!online} />
-                    <span className={`text-xs ${online ? 'text-accent' : 'text-info'}`}>
-                      {online ? 'online' : 'pending'}
+              <Fragment key={group.root}>
+                <tr className="border-b border-line bg-ink-850/70">
+                  <td colSpan={5} className="px-5 py-2.5">
+                    <span className="inline-flex items-center gap-2.5">
+                      <span className="font-mono text-sm font-medium text-accent">{group.root}</span>
+                      <span className="text-xs text-fg-faint">
+                        {group.items.length} record{group.items.length !== 1 ? 's' : ''} · {online}/
+                        {group.items.length} online
+                      </span>
                     </span>
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  <ProviderBadge provider={row.provider} />
-                </td>
-                <td className="px-5 py-4 font-mono text-sm text-fg">{row.domain}</td>
-                <td className="px-5 py-4 text-sm">
-                  <CopyableIp ip={row.currentIp} />
-                </td>
-                <td className="px-5 py-4 text-sm text-fg-dim" title={fullTime(row.lastUpdate)}>
-                  {relativeTime(row.lastUpdate)}
-                </td>
-              </tr>
+                  </td>
+                </tr>
+                {group.items.map((row, i) => {
+                  const isUp = row.hasData
+                  return (
+                    <tr
+                      key={`${row.domain}-${row.index}`}
+                      className="border-b border-line/60 opacity-0 transition-colors last:border-0 hover:bg-surface-2/60"
+                      style={{ animation: 'rise 0.4s ease-out forwards', animationDelay: `${i * 40}ms` }}
+                    >
+                      <td className="px-5 py-4">
+                        <span className="inline-flex items-center gap-2.5">
+                          <StatusDot kind={isUp ? 'online' : 'pending'} pulse={!isUp} />
+                          <span className={`text-xs ${isUp ? 'text-accent' : 'text-info'}`}>
+                            {isUp ? 'online' : 'pending'}
+                          </span>
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <ProviderBadge provider={row.provider} />
+                      </td>
+                      <td className="px-5 py-4 font-mono text-sm text-fg">{row.domain}</td>
+                      <td className="px-5 py-4 text-sm">
+                        <CopyableIp ip={row.currentIp} />
+                      </td>
+                      <td className="px-5 py-4 text-sm text-fg-dim" title={fullTime(row.lastUpdate)}>
+                        {relativeTime(row.lastUpdate)}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </Fragment>
             )
           })}
         </tbody>

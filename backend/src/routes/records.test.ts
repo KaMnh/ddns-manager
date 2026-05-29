@@ -39,6 +39,7 @@ describe('GET /api/records', () => {
     const body = res.json()
     expect(body.records[0]).toMatchObject({ index: 0, provider: 'duckdns', domain: 'a.duckdns.org' })
     expect(body.records[0].token).toBe(SECRET_MASK)
+    expect(body.records[0].rootDomain).toBe('duckdns.org')
   })
 })
 

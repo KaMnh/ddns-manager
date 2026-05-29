@@ -34,6 +34,7 @@ export interface RecordRow {
   index: number
   provider: string
   domain: string
+  rootDomain?: string
   [key: string]: unknown
 }
 
@@ -42,6 +43,7 @@ export interface StatusRow {
   index: number
   provider: string
   domain: string
+  rootDomain?: string
   ip_version?: string
   currentIp?: string
   lastUpdate?: string

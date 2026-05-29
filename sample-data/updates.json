@@ -9,6 +9,16 @@
       ]
     },
     {
+      "domain": "example.com",
+      "owner": "www",
+      "ips": [{ "ip": "203.0.113.42", "time": "2026-05-29T15:30:05Z" }]
+    },
+    {
+      "domain": "mysite.dev",
+      "owner": "@",
+      "ips": [{ "ip": "198.51.100.7", "time": "2026-05-29T14:10:00Z" }]
+    },
+    {
       "domain": "duckdns.org",
       "owner": "myhome",
       "ips": [{ "ip": "203.0.113.42", "time": "2026-05-29T15:31:00Z" }]

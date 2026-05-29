@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify'
 import { ConfigStore, type DdnsRecord } from '../lib/configStore.js'
 import { getProviderSchema, secretFieldNames } from '../lib/providers.js'
 import { validateRecord } from '../lib/validate.js'
+import { rootDomain } from '../lib/domain.js'
 
 /** Sentinel returned in place of secret values. The frontend shows it; if it
  *  comes back unchanged on save we keep the stored secret. */
@@ -44,7 +45,13 @@ const recordsRoutes: FastifyPluginAsync<RecordsOptions> = async (app, opts) => {
 
   app.get('/api/records', async () => {
     const cfg = await store.read()
-    return { records: cfg.settings.map((r, index) => ({ index, ...maskRecord(r, secrets) })) }
+    return {
+      records: cfg.settings.map((r, index) => ({
+        index,
+        rootDomain: rootDomain(String(r.domain)),
+        ...maskRecord(r, secrets),
+      })),
+    }
   })
 
   app.post('/api/records', async (req, reply) => {

@@ -3,10 +3,38 @@
     {
       "provider": "cloudflare",
       "domain": "home.example.com",
-      "zone_identifier": "abc123zone",
-      "token": "cf-secret-token-value",
+      "zone_identifier": "zoneExample",
+      "token": "cf-token-example",
       "proxied": true,
       "ttl": 600
+    },
+    {
+      "provider": "cloudflare",
+      "domain": "www.example.com",
+      "zone_identifier": "zoneExample",
+      "token": "cf-token-example",
+      "proxied": true,
+      "ttl": 1
+    },
+    {
+      "provider": "cloudflare",
+      "domain": "api.example.com",
+      "zone_identifier": "zoneExample",
+      "token": "cf-token-example",
+      "ip_version": "ipv4"
+    },
+    {
+      "provider": "cloudflare",
+      "domain": "mysite.dev",
+      "zone_identifier": "zoneMysite",
+      "token": "cf-token-mysite",
+      "proxied": false
+    },
+    {
+      "provider": "cloudflare",
+      "domain": "blog.mysite.dev",
+      "zone_identifier": "zoneMysite",
+      "token": "cf-token-mysite"
     },
     {
       "provider": "duckdns",

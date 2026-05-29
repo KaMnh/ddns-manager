@@ -21,7 +21,7 @@ So this GUI:
 ## Features (scope)
 
 - **Records** — add / edit / delete records with provider-aware forms and inline validation.
-- **Dashboard** — current IP + last-update time per record (from `updates.json`), online/pending status.
+- **Dashboard** — current IP + last-update time per record (from `updates.json`), online/pending status. Records are **grouped by root domain**, so many domains (e.g. several Cloudflare zones) stay easy to tell apart.
 - **Force refresh** — button that calls ddns-updater's `/update`.
 - **Secret safety** — tokens/passwords are masked in API responses; editing without revealing keeps the stored value. Files are written atomically with a `.bak` backup, and records/fields the GUI doesn't understand are preserved untouched.
 - Providers with detailed forms: **Cloudflare, DuckDNS, No-IP, GoDaddy, Namecheap, Porkbun** (others still work via a generic editor).
