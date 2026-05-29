@@ -1,5 +1,7 @@
 # DDNS Manager — a GUI for [qdm12/ddns-updater](https://github.com/qdm12/ddns-updater)
 
+[![CI](https://github.com/KaMnh/ddns-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/KaMnh/ddns-manager/actions/workflows/ci.yml)
+
 > Một GUI đơn giản để **cấu hình & quản lý record** cho `ddns-updater` và xem trạng thái — chạy cạnh ddns-updater, đọc/ghi trực tiếp `config.json`.
 
 A small web app that runs **alongside** ddns-updater. It gives you a form-based editor for DNS records (no hand-editing JSON) and a status dashboard.
@@ -57,6 +59,17 @@ docker compose -f docker-compose.example.yml up -d --build
 # 4. add records, then apply them:
 docker compose -f docker-compose.example.yml restart ddns-updater
 ```
+
+## Run from the published image (GHCR)
+
+```bash
+docker pull ghcr.io/kamnh/ddns-manager:latest   # or pin a version: :0.1.0
+```
+
+In [docker-compose.example.yml](docker-compose.example.yml), swap `build: .` for
+`image: ghcr.io/kamnh/ddns-manager:latest`. The image is published by CI on every `v*` tag.
+
+> If the package is private, make it public in its package settings, or `docker login ghcr.io` with a token that has `read:packages` before pulling.
 
 ## Local development
 

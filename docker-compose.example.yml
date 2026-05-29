@@ -19,7 +19,7 @@ services:
 
   ddns-updater-gui:
     build: .
-    # image: ddns-updater-gui   # or build once and pin an image
+    # image: ghcr.io/kamnh/ddns-manager:latest   # use the published GHCR image instead of building
     container_name: ddns-updater-gui
     depends_on:
       - ddns-updater
