@@ -1,0 +1,24 @@
+{
+  "settings": [
+    {
+      "provider": "cloudflare",
+      "domain": "home.example.com",
+      "zone_identifier": "abc123zone",
+      "token": "cf-secret-token-value",
+      "proxied": true,
+      "ttl": 600
+    },
+    {
+      "provider": "duckdns",
+      "domain": "myhome.duckdns.org",
+      "token": "duck-secret-token"
+    },
+    {
+      "provider": "noip",
+      "domain": "office.ddns.net",
+      "username": "officeuser",
+      "password": "noip-secret-pass",
+      "ip_version": "ipv4"
+    }
+  ]
+}

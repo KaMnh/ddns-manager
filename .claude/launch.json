@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ddns-gui",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/scripts/demo.mjs"],
+      "port": 8090
+    }
+  ]
+}

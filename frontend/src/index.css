@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────────────────────
+   DDNS Manager — "network operations console" theme
+   Dark, technical. Lime = online/primary, amber = attention,
+   rose = error, sky = pending. Mono for IPs/values, Outfit for UI.
+   ─────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Outfit Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-ink-950: #06090a;
+  --color-ink-900: #0a0e10;
+  --color-ink-850: #0e1517;
+  --color-surface: #111b1d;
+  --color-surface-2: #16211f;
+  --color-line: #1f2c2e;
+  --color-line-bright: #2d4042;
+
+  --color-fg: #e8f1ee;
+  --color-fg-dim: #9bb2af;
+  --color-fg-faint: #5f7779;
+
+  --color-accent: #9ef01a;
+  --color-accent-soft: #c8ff63;
+  --color-warn: #f5b942;
+  --color-down: #fb7185;
+  --color-info: #4cc4f0;
+
+  --radius: 0.75rem;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--color-ink-900);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 38%, transparent);
+    color: #fff;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-bright) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-line-bright);
+    border-radius: 8px;
+    border: 2px solid var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* dotted grid backdrop */
+  .bg-grid {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      color-mix(in oklab, var(--color-line-bright) 65%, transparent) 1px,
+      transparent 0
+    );
+    background-size: 22px 22px;
+  }
+
+  /* faint scanline atmosphere for header areas */
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      color-mix(in oklab, var(--color-ink-950) 55%, transparent) 3px,
+      transparent 4px
+    );
+  }
+
+  .glow-accent {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-accent) 45%, transparent),
+      0 0 28px -8px color-mix(in oklab, var(--color-accent) 70%, transparent);
+  }
+
+  /* status indicator dot with a soft halo */
+  .dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: currentColor;
+    box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 18%, transparent);
+  }
+  .dot-pulse {
+    animation: dot-pulse 1.6s ease-in-out 4;
+  }
+
+  .cursor-blink {
+    animation: blink 1.1s step-end 6;
+  }
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

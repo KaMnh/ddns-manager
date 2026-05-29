@@ -1,0 +1,35 @@
+# Example: ddns-updater + this GUI, sharing one data volume.
+#
+# IMPORTANT: ddns-updater won't start without a config.json. Create one first:
+#   mkdir -p data && echo '{"settings":[]}' > data/config.json
+# then `docker compose -f docker-compose.example.yml up -d` and add records in the GUI.
+#
+# Because ddns-updater only reads config.json at startup, RESTART it after
+# adding/editing/removing records:  docker compose restart ddns-updater
+
+services:
+  ddns-updater:
+    image: qmcgaw/ddns-updater
+    container_name: ddns-updater
+    volumes:
+      - ./data:/updater/data
+    ports:
+      - "8000:8000" # optional: ddns-updater's own status page
+    restart: unless-stopped
+
+  ddns-updater-gui:
+    build: .
+    # image: ddns-updater-gui   # or build once and pin an image
+    container_name: ddns-updater-gui
+    depends_on:
+      - ddns-updater
+    environment:
+      DDNS_UPDATER_URL: http://ddns-updater:8000
+      # Recommended when exposing the GUI (it edits credentials):
+      # GUI_USERNAME: admin
+      # GUI_PASSWORD: change-me
+    volumes:
+      - ./data:/data # SAME data dir as ddns-updater -> shared config.json + updates.json
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

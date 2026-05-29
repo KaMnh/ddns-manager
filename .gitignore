@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.log
+*.local
+
+# local runtime data (config.json + updates.json live here when you run locally)
+/data/
+
+# config backups / atomic-write temp files
+*.bak
+*.tmp
+
+.env
+.DS_Store
+
+# Claude Code local/personal settings (keep launch.json shareable)
+.claude/settings.local.json
