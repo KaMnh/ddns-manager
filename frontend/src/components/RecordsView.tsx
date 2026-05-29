@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { RecordRow } from '../lib/types'
-import { groupByRoot } from '../lib/group'
+import { groupByRoot, splitDomains } from '../lib/group'
 import { Button, ProviderBadge, Spinner } from './ui'
 import { IconPlus, IconPencil, IconTrash } from './icons'
 
@@ -70,8 +70,26 @@ export function RecordsView({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2.5">
                         <ProviderBadge provider={r.provider} />
-                        <span className="truncate font-mono text-sm text-fg">{r.domain}</span>
+                        {splitDomains(r.domain).length > 1 ? (
+                          <span className="text-sm text-fg-dim">
+                            <span className="font-mono text-fg">{splitDomains(r.domain).length}</span> domains
+                          </span>
+                        ) : (
+                          <span className="truncate font-mono text-sm text-fg">{r.domain}</span>
+                        )}
                       </div>
+                      {splitDomains(r.domain).length > 1 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {splitDomains(r.domain).map((d) => (
+                            <span
+                              key={d}
+                              className="rounded-md border border-line bg-ink-950/60 px-1.5 py-0.5 font-mono text-xs text-fg-dim"
+                            >
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <div className="mt-1.5 text-xs text-fg-faint">{String(r.ip_version ?? 'ipv4 or ipv6')}</div>
                     </div>
 

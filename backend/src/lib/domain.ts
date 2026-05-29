@@ -26,3 +26,16 @@ export function rootDomain(input: string): string {
   }
   return lastTwo
 }
+
+/**
+ * Splits a possibly comma-separated `domain` field into individual domains.
+ * ddns-updater treats `"a.example.com,b.example.com"` as multiple records (one
+ * updates.json entry each), so the GUI must expand them too. A single domain
+ * returns a one-element array.
+ */
+export function splitDomains(domain: string): string[] {
+  return domain
+    .split(',')
+    .map((d) => d.trim())
+    .filter((d) => d.length > 0)
+}

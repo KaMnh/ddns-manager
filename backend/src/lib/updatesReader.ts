@@ -1,4 +1,5 @@
 import type { DdnsRecord } from './configStore.js'
+import { splitDomains } from './domain.js'
 
 /** Per-record status distilled from ddns-updater's updates.json. */
 export interface UpdateRecordStatus {
@@ -56,19 +57,29 @@ export function parseUpdates(raw: unknown): UpdateRecordStatus[] {
   })
 }
 
-/** Left-joins config records with parsed update status, matching on host/domain. */
+/**
+ * Left-joins config records with parsed update status, matching on host/domain.
+ * A config record whose `domain` is a comma-separated list is expanded into one
+ * status row per domain (ddns-updater stores them as separate records), so each
+ * gets its own correct status instead of one unmatchable "pending" row.
+ */
 export function mergeStatus(records: DdnsRecord[], updates: UpdateRecordStatus[]): MergedStatus[] {
-  return records.map((r, index) => {
-    const domain = String(r.domain)
-    const match = updates.find((u) => u.host === domain || u.domain === domain)
-    return {
-      index,
-      provider: String(r.provider),
-      domain,
-      ip_version: typeof r.ip_version === 'string' ? r.ip_version : undefined,
-      currentIp: match?.currentIp,
-      lastUpdate: match?.lastUpdate,
-      hasData: Boolean(match?.currentIp),
+  const out: MergedStatus[] = []
+  records.forEach((r, index) => {
+    const provider = String(r.provider)
+    const ip_version = typeof r.ip_version === 'string' ? r.ip_version : undefined
+    for (const domain of splitDomains(String(r.domain))) {
+      const match = updates.find((u) => u.host === domain || u.domain === domain)
+      out.push({
+        index,
+        provider,
+        domain,
+        ip_version,
+        currentIp: match?.currentIp,
+        lastUpdate: match?.lastUpdate,
+        hasData: Boolean(match?.currentIp),
+      })
     }
   })
+  return out
 }

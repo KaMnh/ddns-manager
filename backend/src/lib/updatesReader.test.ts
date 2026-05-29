@@ -63,4 +63,20 @@ describe('mergeStatus', () => {
     expect(merged[0]).toMatchObject({ index: 0, provider: 'cloudflare', currentIp: '1.2.3.5', hasData: true })
     expect(merged[1]).toMatchObject({ index: 1, provider: 'duckdns', hasData: false })
   })
+
+  test('expands a comma-separated domain into one matched row per domain', () => {
+    // ddns-updater treats a comma-separated "domain" as multiple records and
+    // writes one updates.json entry per domain — so we must match each.
+    const multi = [{ provider: 'cloudflare', domain: 'tooljet.example.com, *.example.com,api.example.com' }]
+    const updates = [
+      { host: 'tooljet.example.com', domain: 'example.com', owner: 'tooljet', currentIp: '1.2.3.4', lastUpdate: 't1', count: 1 },
+      { host: '*.example.com', domain: 'example.com', owner: '*', currentIp: '1.2.3.4', lastUpdate: 't2', count: 1 },
+      // api.example.com intentionally has no updates entry -> should be pending
+    ]
+    const merged = mergeStatus(multi, updates)
+    expect(merged.map((m) => m.domain)).toEqual(['tooljet.example.com', '*.example.com', 'api.example.com'])
+    expect(merged.find((m) => m.domain === 'tooljet.example.com')?.hasData).toBe(true)
+    expect(merged.find((m) => m.domain === '*.example.com')?.hasData).toBe(true)
+    expect(merged.find((m) => m.domain === 'api.example.com')?.hasData).toBe(false)
+  })
 })

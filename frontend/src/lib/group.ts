@@ -17,3 +17,11 @@ export function groupByRoot<T extends { rootDomain?: string; domain: string }>(
     }))
     .sort((a, b) => a.root.localeCompare(b.root))
 }
+
+/** Splits a comma-separated `domain` field into individual domains. */
+export function splitDomains(domain: string): string[] {
+  return domain
+    .split(',')
+    .map((d) => d.trim())
+    .filter((d) => d.length > 0)
+}
