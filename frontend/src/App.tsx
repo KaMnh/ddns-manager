@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from './lib/api'
-import type { ProvidersResponse, RecordRow, StatusRow } from './lib/types'
+import type { ProvidersResponse, RecordRow, RestartInfo, StatusRow } from './lib/types'
 import { Button, StatusDot } from './components/ui'
 import { DashboardView } from './components/DashboardView'
 import { RecordsView } from './components/RecordsView'
 import { RecordForm } from './components/RecordForm'
-import { IconRefresh, IconWarning, IconServer, IconX } from './components/icons'
+import { RestartBanner } from './components/RestartBanner'
+import { IconRefresh, IconPower, IconServer } from './components/icons'
 
 type Tab = 'dashboard' | 'records'
 type Toast = { kind: 'ok' | 'err'; msg: string } | null
@@ -18,6 +19,8 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [dirty, setDirty] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
+  const [restarting, setRestarting] = useState(false)
+  const [restartInfo, setRestartInfo] = useState<RestartInfo | null>(null)
   const [toast, setToast] = useState<Toast>(null)
   const [form, setForm] = useState<{ open: boolean; record: RecordRow | null }>({ open: false, record: null })
 
@@ -37,10 +40,15 @@ export default function App() {
     }
   }, [])
 
+  const loadRestartInfo = useCallback(async () => {
+    setRestartInfo(await api.getRestartInfo().catch(() => null))
+  }, [])
+
   useEffect(() => {
     api.getProviders().then(setProviders).catch(() => showToast('err', 'Could not load provider schemas'))
     reload().catch(() => showToast('err', 'Could not load records'))
-  }, [reload, showToast])
+    loadRestartInfo()
+  }, [reload, showToast, loadRestartInfo])
 
   const onForceRefresh = async () => {
     setRefreshing(true)
@@ -48,6 +56,22 @@ export default function App() {
     setRefreshing(false)
     showToast(r.ok ? 'ok' : 'err', r.message)
     if (r.ok) reload()
+  }
+
+  // Restarting is what actually applies config.json changes — ddns-updater
+  // reads its records only at startup.
+  const onRestart = async () => {
+    setRestarting(true)
+    const r = await api.restart()
+    setRestarting(false)
+    showToast(r.ok ? 'ok' : 'err', r.message)
+    loadRestartInfo()
+    if (r.ok) {
+      setDirty(false)
+      reload()
+      // ddns-updater rewrites updates.json a moment after it comes back up.
+      window.setTimeout(() => reload(), 4000)
+    }
   }
 
   const submitRecord = async (record: Record<string, unknown>) => {
@@ -102,6 +126,19 @@ export default function App() {
             <Button variant="ghost" onClick={onForceRefresh} loading={refreshing} title="Trigger ddns-updater GET /update">
               {!refreshing && <IconRefresh width={16} height={16} />} Force refresh
             </Button>
+            <Button
+              variant={dirty && restartInfo?.available ? 'primary' : 'ghost'}
+              onClick={onRestart}
+              loading={restarting}
+              disabled={!restartInfo?.available}
+              title={
+                restartInfo?.available
+                  ? `Restart ${restartInfo.container} to apply config.json changes`
+                  : `One-click restart unavailable: ${restartInfo?.reason ?? 'checking…'}`
+              }
+            >
+              {!restarting && <IconPower width={16} height={16} />} Restart
+            </Button>
           </div>
         </header>
 
@@ -125,16 +162,12 @@ export default function App() {
 
         {/* dirty / restart banner */}
         {dirty && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-warn/30 bg-warn/10 px-4 py-3 text-sm">
-            <IconWarning width={18} height={18} className="mt-0.5 shrink-0 text-warn" />
-            <div className="flex-1 text-fg-dim">
-              <span className="text-warn">Config changed.</span> Restart ddns-updater to apply added, edited or removed
-              records — <span className="text-fg">Force refresh</span> only re-checks IPs of already-loaded records.
-            </div>
-            <button onClick={() => setDirty(false)} className="text-fg-faint hover:text-fg" aria-label="Dismiss">
-              <IconX width={16} height={16} />
-            </button>
-          </div>
+          <RestartBanner
+            info={restartInfo}
+            restarting={restarting}
+            onRestart={onRestart}
+            onDismiss={() => setDirty(false)}
+          />
         )}
 
         {/* views */}

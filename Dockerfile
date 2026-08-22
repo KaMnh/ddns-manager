@@ -29,7 +29,8 @@ ENV PORT=8080 \
     HOST=0.0.0.0 \
     DATA_DIR=/data \
     STATIC_DIR=/app/public \
-    DDNS_UPDATER_URL=http://ddns-updater:8000
+    DDNS_UPDATER_URL=http://ddns-updater:8000 \
+    DDNS_UPDATER_CONTAINER=ddns-updater
 
 EXPOSE 8080
 VOLUME ["/data"]

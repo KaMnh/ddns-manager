@@ -54,3 +54,15 @@ export interface ValidationError {
   field: string
   message: string
 }
+
+/** Whether the GUI can restart ddns-updater itself (GET /api/restart). */
+export interface RestartInfo {
+  available: boolean
+  /** Container the backend is configured to restart. */
+  container: string
+  /** Docker endpoint in use, e.g. unix:///var/run/docker.sock. */
+  target: string
+  /** Why restarting is unavailable — shown to the user so they can fix it. */
+  reason?: string
+  state?: { status?: string; running?: boolean; startedAt?: string }
+}

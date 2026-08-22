@@ -85,6 +85,13 @@ export const IconExternal = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
+export const IconPower = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 3v9" />
+    <path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
+  </svg>
+)
+
 export const IconServer = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="2" y="3" width="20" height="8" rx="2" />
