@@ -4,10 +4,12 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ConfigStore } from './lib/configStore.js'
+import { DockerClient } from './lib/docker.js'
 import { COMMON_FIELDS, listProviders } from './lib/providers.js'
 import recordsRoutes from './routes/records.js'
 import statusRoutes from './routes/status.js'
 import refreshRoutes from './routes/refresh.js'
+import restartRoutes from './routes/restart.js'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
@@ -20,6 +22,13 @@ const DDNS_UPDATER_URL = process.env.DDNS_UPDATER_URL ?? 'http://localhost:8000'
 const STATIC_DIR = process.env.STATIC_DIR ?? path.resolve(here, '../public')
 const GUI_USERNAME = process.env.GUI_USERNAME
 const GUI_PASSWORD = process.env.GUI_PASSWORD
+// Restarting ddns-updater is what actually applies new/edited/removed records.
+// Set DDNS_UPDATER_CONTAINER='' to disable it; it also stays disabled unless
+// the Docker socket is reachable from this container.
+const DDNS_UPDATER_CONTAINER = process.env.DDNS_UPDATER_CONTAINER ?? 'ddns-updater'
+const DOCKER_HOST = process.env.DOCKER_HOST
+const DOCKER_SOCKET = process.env.DOCKER_SOCKET ?? '/var/run/docker.sock'
+const RESTART_STOP_TIMEOUT = Number(process.env.RESTART_STOP_TIMEOUT ?? 10)
 
 function buildServer() {
   const app = Fastify({ logger: true })
@@ -48,6 +57,11 @@ function buildServer() {
   app.register(recordsRoutes, { store })
   app.register(statusRoutes, { store, updatesPath: UPDATES_FILE })
   app.register(refreshRoutes, { ddnsUpdaterUrl: DDNS_UPDATER_URL })
+  app.register(restartRoutes, {
+    docker: new DockerClient({ dockerHost: DOCKER_HOST, socketPath: DOCKER_SOCKET }),
+    container: DDNS_UPDATER_CONTAINER,
+    stopTimeout: Number.isFinite(RESTART_STOP_TIMEOUT) ? RESTART_STOP_TIMEOUT : 10,
+  })
 
   // Serve the built frontend (production). Unknown non-API GET routes fall back
   // to index.html so the single-page app can handle client-side views.
@@ -69,6 +83,11 @@ const app = buildServer()
 app.log.info(`config: ${CONFIG_FILE}`)
 app.log.info(`updates: ${UPDATES_FILE}`)
 app.log.info(`ddns-updater: ${DDNS_UPDATER_URL}`)
+app.log.info(
+  DDNS_UPDATER_CONTAINER
+    ? `restart target: container "${DDNS_UPDATER_CONTAINER}" via ${DOCKER_HOST ?? `unix://${DOCKER_SOCKET}`}`
+    : 'restart target: disabled (DDNS_UPDATER_CONTAINER is empty)',
+)
 app.listen({ port: PORT, host: HOST }).catch((err) => {
   app.log.error(err)
   process.exit(1)

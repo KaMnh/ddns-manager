@@ -4,8 +4,10 @@
 #   mkdir -p data && echo '{"settings":[]}' > data/config.json
 # then `docker compose -f docker-compose.example.yml up -d` and add records in the GUI.
 #
-# Because ddns-updater only reads config.json at startup, RESTART it after
-# adding/editing/removing records:  docker compose restart ddns-updater
+# ddns-updater only reads config.json at startup, so added/edited/removed records
+# take effect only after a RESTART. The GUI's "Restart & apply" button does that
+# for you via the Docker socket mounted below; without that mount it falls back
+# to telling you to run `docker compose restart ddns-updater` yourself.
 
 services:
   ddns-updater:
@@ -25,11 +27,28 @@ services:
       - ddns-updater
     environment:
       DDNS_UPDATER_URL: http://ddns-updater:8000
+      DDNS_UPDATER_CONTAINER: ddns-updater # container the "Restart & apply" button restarts
       # Recommended when exposing the GUI (it edits credentials):
       # GUI_USERNAME: admin
       # GUI_PASSWORD: change-me
     volumes:
       - ./data:/data # SAME data dir as ddns-updater -> shared config.json + updates.json
+      # Lets the GUI restart ddns-updater so new records are applied. NOTE: access
+      # to the socket is root-equivalent on the host — drop this line if you'd
+      # rather restart by hand, or use the socket proxy below instead.
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8080:8080"
     restart: unless-stopped
+# --- Safer alternative to mounting the socket directly -----------------------
+# A proxy that exposes only what the restart needs. Replace the socket mount
+# above with `DOCKER_HOST: tcp://docker-proxy:2375` in the GUI's environment:
+#
+#   docker-proxy:
+#     image: tecnativa/docker-socket-proxy
+#     environment:
+#       CONTAINERS: 1   # GET /containers/<name>/json  (restart availability)
+#       POST: 1         # POST /containers/<name>/restart
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock:ro
+#     restart: unless-stopped
